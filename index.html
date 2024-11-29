@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f7f4;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        h2 {
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #eaeaea;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        img {
+            width: 100px;
+            height: 100px;
+            object-fit: fill;
+            transition: transform 0.3s ease, border 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        img:hover {
+            transform: scale(1.1);
+            border: 2px solid #f4060a;
+        }
+
+        .sortable {
+            cursor: pointer;
+        }
+
+        .scrolling-text {
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+            animation: scroll 10s linear infinite;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            padding: 10px 0;
+            border: 2px solid #ccc;
+            background-color: #eaeaea;
+            text-align: center;
+        }
+
+        table th:nth-child(1),
+        table td:nth-child(1) {
+            width: 25%;
+        }
+
+        table th:nth-child(2),
+        table td:nth-child(2) {
+            width: 20%;
+        }
+
+        table th:nth-child(3),
+        table td:nth-child(3) {
+            width: 20%;
+        }
+
+        table th:nth-child(4),
+        table td:nth-child(4) {
+            width: 15%;
+        }
+
+        table th:nth-child(5),
+        table td:nth-child(5) {
+            width: 15%;
+        }
+
+        table th:nth-child(6),
+        table td:nth-child(6) {
+            width: 5%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scrolling-text">
+        Animal Management System
+    </div>
+
+    <section id="big-cats">
+        <h2>Big Cats</h2>
+        <button onclick="bigCatsTable.addAnimal()">Add Big Cat</button>
+        <table id="bigCatsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" onclick="bigCatsTable.toggleSort('name')">Name</th>
+                    <th class="sortable" onclick="bigCatsTable.toggleSort('species')">Species</th>
+                    <th class="sortable" onclick="bigCatsTable.toggleSort('region')">Region</th>
+                    <th class="sortable" onclick="bigCatsTable.toggleSort('location')">Location</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section id="dogs">
+        <h2>Dogs</h2>
+        <button onclick="dogsTable.addAnimal()">Add Dog</button>
+        <table id="dogsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" onclick="dogsTable.toggleSort('name')">Name</th>
+                    <th>Breed</th>
+                    <th>Size</th>
+                    <th class="sortable" onclick="dogsTable.toggleSort('location')">Location</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section id="big-fish">
+        <h2>Big Fish</h2>
+        <button onclick="bigFishTable.addAnimal()">Add Fish</button>
+        <table id="bigFishTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Species</th>
+                    <th class="sortable" onclick="bigFishTable.toggleSort('size')">Size</th>
+                    <th>Location</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <script>
+        class BaseTable {
+            constructor(data, tableId, fields, customStyles = {}, sortableFields = [], defaultSortField = null, isAscending = true) {
+                this.data = data || [];
+                this.tableId = tableId;
+                this.fields = fields;
+                this.sortableFields = sortableFields;
+                this.defaultSortField = defaultSortField;
+                this.isAscending = isAscending;
+                this.customStyles = customStyles;
+                this.defaultImage = "images/DefaultImg.jpg";
+                this.sortingStatus = {}; 
+            }
+
+            renderTable() {
+                const tableBody = document.getElementById(this.tableId).querySelector("tbody");
+                tableBody.innerHTML = "";
+
+                this.data.forEach((row, index) => {
+                    const tr = document.createElement("tr");
+
+                    this.fields.forEach(field => {
+                        const td = document.createElement("td");
+
+                        if (field === "image") {
+                            const img = document.createElement("img");
+                            img.src = row[field] || this.defaultImage;
+                            img.alt = "Animal Image";
+                            td.appendChild(img);
+                        } else {
+                            td.innerText = row[field];
+                            if (this.customStyles[field]) {
+                                const style = this.customStyles[field];
+                                td.style.fontWeight = style.bold ? "bold" : "normal";
+                                td.style.fontStyle = style.italic ? "italic" : "normal";
+                                td.style.color = style.color || "inherit";
+                            }
+                        }
+                        tr.appendChild(td);
+                    });
+
+                    const actionTd = document.createElement("td");
+                    actionTd.appendChild(this.createButton("Edit", () => this.editAnimal(index)));
+                    actionTd.appendChild(this.createButton("Delete", () => this.deleteAnimal(index), "red"));
+                    tr.appendChild(actionTd);
+
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            createButton(label, onClick, color) {
+                const button = document.createElement("button");
+                button.innerText = label;
+                button.onclick = onClick;
+                if (color) button.style.backgroundColor = color;
+                return button;
+            }
+
+            addAnimal() {
+                const newAnimal = {};
+                for (const field of this.fields) {
+                    if (field === "image") {
+                        newAnimal[field] = this.defaultImage;
+                    } else {
+                        const value = prompt(`Enter ${field}:`);
+                        if (!value || value.trim() === "") {
+                            alert(`${field} cannot be empty.`);
+                            return;
+                        }
+                        if (field === "name" && this.data.some(animal => animal.name === value)) {
+                            alert("Duplicate name detected. Please enter a unique name.");
+                            return;
+                        }
+                        newAnimal[field] = value;
+                    }
+                }
+                this.data.push(newAnimal);
+                if (this.defaultSortField) {
+                    this.sortByField(this.defaultSortField, this.isAscending);
+                }
+                this.renderTable();
+            }
+
+            editAnimal(index) {
+                const animal = this.data[index];
+                for (const field of this.fields) {
+                    if (field !== "image") {
+                        const newValue = prompt(`Edit ${field} (${animal[field]}):`, animal[field]);
+                        if (newValue && newValue.trim() !== "") {
+                            animal[field] = newValue;
+                        }
+                    }
+                }
+                this.renderTable();
+            }
+
+            deleteAnimal(index) {
+                if (confirm("Are you sure you want to delete this entry?")) {
+                    this.data.splice(index, 1);
+                    this.renderTable();
+                }
+            }
+
+            sortByField(field, isAscending) {
+                if (!this.sortableFields.includes(field)) return;
+
+                this.data.sort((a, b) => {
+                    if (a[field] > b[field]) return isAscending ? 1 : -1;
+                    if (a[field] < b[field]) return isAscending ? -1 : 1;
+                    return 0;
+                });
+            }
+
+            toggleSort(field) {
+                if (!this.sortableFields.includes(field)) return;
+
+                const isAscending = this.sortingStatus[field] === false;
+                this.sortingStatus[field] = isAscending;
+
+                this.sortByField(field, isAscending);
+                this.renderTable();
+            }
+        }
+
+        const bigCatsTable = new BaseTable(
+            [
+                { name: "Tiger", species: "Panthera tigris", region: "Asia", location: "Jungle", image: "images/BigCat.jpg" },
+                { name: "Lion", species: "Panthera leo", region: "Africa", location: "Savannah", image: "images/BigCat2.jpg" }
+            ],
+            "bigCatsTable",
+            ["name", "species", "region", "location", "image"],
+            {}, ["name", "species", "region", "location"], "name", true
+        );
+
+        const dogsTable = new BaseTable(
+            [
+                { name: "Labrador", breed: "Retriever", size: "4 ft", location: "Farmhouse", image: "images/dog.jpg" },
+                { name: "Beagle", breed: "Hound", size: "3 ft", location: "Apartment", image: "images/dog2.jpg" }
+            ],
+            "dogsTable",
+            ["name", "breed", "size", "location", "image"],
+            { name: { bold: true } }, ["name", "location"], "name", true
+        );
+
+        const bigFishTable = new BaseTable(
+            [
+                { name: "Great White Shark", species: "Carcharodon", size: "6 ft", location: "Pacific", image: "images/bigfish.jpg" },
+                { name: "Blue Marlin", species: "Makaira nigricans", size: "8 ft", location: "Atlantic", image: "images/bigfish2.jpg" }
+            ],
+            "bigFishTable",
+            ["name", "species", "size", "location", "image"],
+            { name: { bold: true, italic: true, color: "blue" } }, ["size"], "size", true
+        );
+
+        bigCatsTable.renderTable();
+        dogsTable.renderTable();
+        bigFishTable.renderTable();
+    </script>
+</body>
+
+</html>
